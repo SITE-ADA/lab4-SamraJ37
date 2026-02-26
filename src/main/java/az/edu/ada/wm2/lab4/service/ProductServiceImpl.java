@@ -1,54 +1,46 @@
 package az.edu.ada.wm2.lab4.service;
 
-import az.edu.ada.wm2.lab4.model.Product;
-import az.edu.ada.wm2.lab4.repository.ProductRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import org.springframework.stereotype.Service;
+import az.edu.ada.wm2.lab4.model.Product;
+import az.edu.ada.wm2.lab4.repository.ProductRepository;
+import az.edu.ada.wm2.lab4.service.ProductService;
 
 @Service
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
 
-    @Autowired
     public ProductServiceImpl(ProductRepository productRepository) {
         this.productRepository = productRepository;
     }
 
-    @Override
     public Product createProduct(Product product) {
         if (product.getId() == null) {
-            product.setId(UUID.randomUUID());
+            UUID newId = UUID.randomUUID();
+            product = new Product(newId, product.getProductName(), product.getPrice(), product.getExpirationDate());
         }
         return productRepository.save(product);
     }
 
-    @Override
     public Product getProductById(UUID id) {
         return productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));  // Throw exception if not found
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
     }
 
-    @Override
     public List<Product> getAllProducts() {
         return productRepository.findAll();
     }
 
-    @Override
-    public Product updateProduct(UUID id, Product product) {
+    public Product updateProduct(UUID id, Product updatedProduct) {
         if (!productRepository.existsById(id)) {
             throw new RuntimeException("Product not found with id: " + id);
         }
-        product.setId(id);
-        return productRepository.save(product);
+        return productRepository.save(new Product(id, updatedProduct.getProductName(), updatedProduct.getPrice(), updatedProduct.getExpirationDate()));
     }
 
-    @Override
     public void deleteProduct(UUID id) {
         if (!productRepository.existsById(id)) {
             throw new RuntimeException("Product not found with id: " + id);
@@ -56,17 +48,15 @@ public class ProductServiceImpl implements ProductService {
         productRepository.deleteById(id);
     }
 
-    @Override
     public List<Product> getProductsExpiringBefore(LocalDate date) {
         return productRepository.findAll().stream()
                 .filter(product -> product.getExpirationDate().isBefore(date))
                 .toList();
     }
 
-    @Override
-    public List<Product> getProductsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
+    public List<Product> getProductsByPriceRange(BigDecimal min, BigDecimal max) {
         return productRepository.findAll().stream()
-                .filter(product -> product.getPrice().compareTo(minPrice) >= 0 && product.getPrice().compareTo(maxPrice) <= 0)
+                .filter(product -> product.getPrice().compareTo(min) >= 0 && product.getPrice().compareTo(max) <= 0)
                 .toList();
     }
 }
