@@ -1,44 +1,37 @@
 package az.edu.ada.wm2.lab4.repository;
+
 import az.edu.ada.wm2.lab4.model.Product;
-import org.springframework.stereotype.Service;
+import az.edu.ada.wm2.lab4.repository.ProductRepository;
+import org.springframework.stereotype.Repository;
+import java.util.*;
 
-import java.util.Map;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-@Service
+@Repository
 public class ProductRepositoryImpl implements ProductRepository {
 
-    private final Map<UUID, Product> productMap = new HashMap<>();
-    @Override
+    private final Map<UUID, Product> storage = new HashMap<>();
+
     public Product save(Product product) {
         if (product.getId() == null) {
-            product.setId(UUID.randomUUID());
+            UUID newId = UUID.randomUUID();
+            product = new Product(newId, product.getProductName(), product.getPrice(), product.getExpirationDate());
         }
-        productMap.put(product.getId(), product);
+        storage.put(product.getId(), product);
         return product;
     }
 
-    @Override
     public Optional<Product> findById(UUID id) {
-        return Optional.ofNullable(productMap.get(id));
+        return Optional.ofNullable(storage.get(id));
     }
 
-    @Override
     public List<Product> findAll() {
-        return new ArrayList<>(productMap.values());
+        return new ArrayList<>(storage.values());
     }
 
-    @Override
     public void deleteById(UUID id) {
-        productMap.remove(id);
+        storage.remove(id);
     }
 
-    @Override
     public boolean existsById(UUID id) {
-        return productMap.containsKey(id);
+        return storage.containsKey(id);
     }
 }
